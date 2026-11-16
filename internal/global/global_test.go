@@ -19,7 +19,7 @@ func TestReadRepo(t *testing.T) {
 	// test --repo option
 	var gopts Options
 	gopts.Repo = tempDir
-	repo, err := readRepo(gopts)
+	repo, err := gopts.ReadRepo()
 	rtest.OK(t, err)
 	rtest.Equals(t, tempDir, repo)
 
@@ -30,13 +30,13 @@ func TestReadRepo(t *testing.T) {
 
 	var gopts2 Options
 	gopts2.RepositoryFile = foo
-	repo, err = readRepo(gopts2)
+	repo, err = gopts2.ReadRepo()
 	rtest.OK(t, err)
 	rtest.Equals(t, tempDir, repo)
 
 	var gopts3 Options
 	gopts3.RepositoryFile = foo + "-invalid"
-	_, err = readRepo(gopts3)
+	_, err = gopts3.ReadRepo()
 	if err == nil {
 		t.Fatal("must not read repository path from invalid file path")
 	}
@@ -56,7 +56,9 @@ func TestReadRepoEmptyFile(t *testing.T) {
 			filename := filepath.Join(t.TempDir(), "repository")
 			rtest.OK(t, os.WriteFile(filename, []byte(tc.content), 0600))
 
-			repo, err := readRepo(Options{RepositoryFile: filename})
+			var opts Options
+			opts.RepositoryFile = filename
+			repo, err := opts.ReadRepo()
 			rtest.Assert(t, errors.IsFatal(err), "expected fatal error for empty repository file, got %v", err)
 			rtest.Equals(t, "", repo)
 			rtest.Assert(t, strings.Contains(err.Error(), filename), "error should identify repository file, got %v", err)
